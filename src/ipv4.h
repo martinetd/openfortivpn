@@ -73,9 +73,7 @@ struct ipv4_config {
 	int		split_routes;
 	int		route_to_vpn_is_added;
 
-	struct rtentry	def_rt; // default route
 	struct rtentry	gtw_rt; // route to access VPN gateway
-	struct rtentry	ppp_rt; // new default route through VPN
 	struct rtentry	split_rt[MAX_SPLIT_ROUTES]; // split VPN routes
 };
 
