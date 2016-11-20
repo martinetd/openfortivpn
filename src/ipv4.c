@@ -457,7 +457,8 @@ static int ipv4_del_route(struct rtentry *route)
 int ipv4_protect_tunnel_route(struct tunnel *tunnel)
 {
 	struct rtentry *gtw_rt = &tunnel->ipv4.gtw_rt;
-	struct rtentry *def_rt = &tunnel->ipv4.def_rt;
+	struct rtentry stack_def_rt;
+	struct rtentry *def_rt = &stack_def_rt;
 	int ret;
 
 	route_init(def_rt);
@@ -498,6 +499,7 @@ int ipv4_protect_tunnel_route(struct tunnel *tunnel)
 		log_warn("Could not set route to vpn server (%s).\n",
 		         err_ipv4_str(ret));
 
+	route_destroy(def_rt);
 	return 0;
 
 err_destroy:
@@ -566,7 +568,8 @@ static int ipv4_set_split_routes(struct tunnel *tunnel)
 static int ipv4_set_default_routes(struct tunnel *tunnel)
 {
 	int ret;
-	struct rtentry *ppp_rt = &tunnel->ipv4.ppp_rt;
+	struct rtentry stack_ppp_rt;
+	struct rtentry *ppp_rt = &stack_ppp_rt;
 
 	route_init(ppp_rt);
 
@@ -596,6 +599,7 @@ static int ipv4_set_default_routes(struct tunnel *tunnel)
 		         err_ipv4_str(ret));
 	}
 
+	route_destroy(ppp_rt);
 	return 0;
 }
 
@@ -616,9 +620,7 @@ int ipv4_set_tunnel_routes(struct tunnel *tunnel)
 int ipv4_restore_routes(struct tunnel *tunnel)
 {
 	int ret;
-	struct rtentry *def_rt = &tunnel->ipv4.def_rt;
 	struct rtentry *gtw_rt = &tunnel->ipv4.gtw_rt;
-	struct rtentry *ppp_rt = &tunnel->ipv4.ppp_rt;
 
 	if (tunnel->ipv4.route_to_vpn_is_added) {
 		ret = ipv4_del_route(gtw_rt);
@@ -628,8 +630,6 @@ int ipv4_restore_routes(struct tunnel *tunnel)
 	} else {
 		log_debug("Route to vpn server was not added\n");
 	}
-	route_destroy(ppp_rt);
-	route_destroy(def_rt);
 	route_destroy(gtw_rt);
 
 	return 0;
