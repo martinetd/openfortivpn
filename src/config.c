@@ -187,6 +187,9 @@ int load_config(struct vpn_config *cfg, const char *filename)
 				continue;
 			}
 			cfg->set_routes = set_routes;
+		} else if (strcmp(key, "custom-routes") == 0) {
+			cfg->custom_routes = strdup(val);
+			cfg->set_routes = 1;
 		} else if (strcmp(key, "pppd-use-peerdns") == 0) {
 			int pppd_use_peerdns = strtob(val);
 			if (pppd_use_peerdns < 0) {

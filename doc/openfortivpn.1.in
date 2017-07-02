@@ -10,6 +10,7 @@ openfortivpn \- Client for PPP+SSL VPN tunnel services
 [\fB\-p\fR \fI<pass>\fR]
 [\fB\-\-realm=\fI<realm>\fR]
 [\fB\-\-set-routes=<bool>\fR]
+[\fB\-\-custom-routes=<dest>/<mask>(@<gw>),...\fR]
 [\fB\-\-no-routes\fR]
 [\fB\-\-set-dns=<bool>\fR]
 [\fB\-\-no-dns\fR]
@@ -63,6 +64,11 @@ is usually what you want.
 Set if we should try to configure IP routes through the VPN when tunnel is up. If used multiple times, the last one takes priority.
 
 \fB\-\-no-routes\fR is the same as \fB\-\-set-routes=\fI0\fR.
+.TP
+\fB\-\-custom-routes=\fI<dest>/<mask>(@<gw>),...\fR
+Set custom routes to use for tunnel. Note that these are added as extra if the tunnel already defines routes.
+
+Implies \fB\-\-set-routes=1\fR
 .TP
 \fB\-\-set-dns=\fI<bool>\fR, \fB\-\-no-dns\fR
 Set if we should add VPN nameservers in /etc/resolv.conf when tunnel is up. If used multiple times, the last one takes priority.

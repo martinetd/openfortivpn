@@ -67,6 +67,7 @@ struct vpn_config {
 	int     pppd_use_peerdns;
 	int     use_syslog;
 
+	char    *custom_routes;
 	char	*pppd_log;
 	char	*pppd_plugin;
 	char	*pppd_ipparam;
@@ -88,6 +89,7 @@ struct vpn_config {
 		(cfg)->username[0] = '\0'; \
 		(cfg)->password[0] = '\0'; \
 		(cfg)->otp[0] = '\0'; \
+		(cfg)->custom_routes = NULL; \
 		(cfg)->pppd_log = NULL; \
 		(cfg)->pppd_plugin = NULL; \
 		(cfg)->pppd_ipparam = NULL; \
