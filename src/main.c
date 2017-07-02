@@ -25,6 +25,7 @@
 #define usage \
 "Usage: openfortivpn [<host>:<port>] [-u <user>] [-p <pass>]\n" \
 "                    [--realm=<realm>] [--otp=<otp>] [--set-routes=<0|1>]\n" \
+"                    [--custom-routes=<dest>/<mask>(@<gw>),...]\n" \
 "                    [--set-dns=<0|1>] [--pppd-no-peerdns] [--pppd-log=<file>]\n" \
 "                    [--pppd-ipparam=<string>] [--pppd-plugin=<file>]\n" \
 "                    [--ca-file=<file>] [--user-cert=<file>]\n" \
@@ -53,6 +54,8 @@
 "  --set-routes=[01]             Set if we should configure output roues through\n" \
 "                                the VPN when tunnel is up.\n" \
 "  --no-routes                   Do not configure routes, same as --set-routes=0.\n" \
+"  --custom-routes=<dest>/<mask>(@<gw>),...\n" \
+"                                Define custom routes to use for tunnel.\n" \
 "  --set-dns=[01]                Set if we should add VPN name servers in\n" \
 "                                /etc/resolv.conf\n" \
 "  --no-dns                      Do not reconfigure DNS, same as --set-dns=0\n" \
@@ -140,6 +143,7 @@ int main(int argc, char **argv)
 		{"otp",             required_argument, 0, 'o'},
 		{"set-routes",	    required_argument, 0, 0},
 		{"no-routes",       no_argument, &cfg.set_routes, 0},
+		{"custom-routes",   required_argument, 0, 0},
 		{"set-dns",	    required_argument, 0, 0},
 		{"no-dns",          no_argument, &cfg.set_dns, 0},
 		{"pppd-no-peerdns", no_argument, &cfg.pppd_use_peerdns, 0},
@@ -243,6 +247,12 @@ int main(int argc, char **argv)
 					break;
 				}
 				cfg.set_routes = set_routes;
+				break;
+			}
+			if (strcmp(long_options[option_index].name,
+			           "custom-routes") == 0) {
+				cfg.custom_routes = strdup(optarg);
+				cfg.set_routes = 1;
 				break;
 			}
 			if (strcmp(long_options[option_index].name,

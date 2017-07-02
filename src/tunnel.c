@@ -50,8 +50,17 @@ static int on_ppp_if_up(struct tunnel *tunnel)
 	if (tunnel->config->set_routes) {
 		int ret;
 
+		if (tunnel->config->custom_routes) {
+			log_info("Parsing custom split routes...\n");
+			ret = ipv4_add_split_vpn_routes_parse(
+			              tunnel,
+			              tunnel->config->custom_routes);
+			if (ret != 0) {
+				log_warn("Custome split route parse failed. "
+				         "Please check route table.\n");
+			}
+		}
 		log_info("Setting new routes...\n");
-
 		ret = ipv4_set_tunnel_routes(tunnel);
 
 		if (ret != 0) {

@@ -542,6 +542,50 @@ int ipv4_add_split_vpn_route(struct tunnel *tunnel, char *dest, char *mask,
 	return 0;
 }
 
+/* parse ipv4 split routes specification string
+ * syntax is dest/mask or dest/mask@gateway, comma-separated
+ * e.g. dest1/mask1@gw1,dest2/mask
+ */
+int ipv4_add_split_vpn_routes_parse(struct tunnel *tunnel, char *routes)
+{
+	char *dest, *mask, *gateway;
+	int rc;
+
+	while (routes) {
+		dest = routes;
+		mask = strchr(routes, '/');
+		routes = strchr(routes, ',');
+		if (!mask || (routes && mask > routes)) {
+			log_warn("Bad route specification around %s, mask is mandatory\n",
+			         dest);
+			return EINVAL;
+		}
+		mask[0] = '\0';
+		mask++;
+
+		/* Check if gateway is specified */
+		gateway = strchr(mask, '@');
+		if (gateway) {
+			/* make sure it's within this block */
+			if (!routes || gateway < routes) {
+				gateway[0] = '\0';
+				gateway++;
+			} else {
+				gateway = NULL;
+			}
+		}
+		if (routes) {
+			routes[0] = '\0';
+			routes++;
+		}
+
+		rc = ipv4_add_split_vpn_route(tunnel, dest, mask, gateway);
+		if (rc)
+			return rc;
+	}
+	return 0;
+}
+
 static int ipv4_set_split_routes(struct tunnel *tunnel)
 {
 	int i;

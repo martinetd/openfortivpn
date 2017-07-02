@@ -91,6 +91,7 @@ struct tunnel;
 
 int ipv4_add_split_vpn_route(struct tunnel *tunnel, char *dest, char *mask,
                              char *gateway);
+int ipv4_add_split_vpn_routes_parse(struct tunnel *tunnel, char *routes);
 int ipv4_set_tunnel_routes(struct tunnel *tunnel);
 int ipv4_restore_routes(struct tunnel *tunnel);
 
