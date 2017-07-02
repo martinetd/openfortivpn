@@ -22,94 +22,91 @@
 #include "tunnel.h"
 #include "userinput.h"
 
-static const char usage[] = \
-"Usage: openfortivpn [<host>:<port>] [-u <user>] [-p <pass>]\n" \
-"                    [--realm=<realm>] [--otp=<otp>] [--set-routes=<0|1>]\n" \
-"                    [--custom-routes=<dest>/<mask>(@<gw>),...]\n" \
-"                    [--set-dns=<0|1>] [--pppd-no-peerdns] [--pppd-log=<file>]\n" \
-"                    [--pppd-ipparam=<string>] [--pppd-plugin=<file>]\n" \
-"                    [--ca-file=<file>] [--user-cert=<file>]\n" \
-"                    [--user-key=<file>] [--trusted-cert=<digest>]\n" \
-"                    [--use-syslog] [-c <file>] [-v|-q]\n" \
-"       openfortivpn --help\n" \
-"       openfortivpn --version\n" \
-"\n";
+static const char usage[] = "Usage: openfortivpn [<host>:<port>] [-u <user>] [-p <pass>]\n" \
+                            "                    [--realm=<realm>] [--otp=<otp>] [--set-routes=<0|1>]\n" \
+                            "                    [--custom-routes=<dest>/<mask>(@<gw>),...]\n" \
+                            "                    [--set-dns=<0|1>] [--pppd-no-peerdns] [--pppd-log=<file>]\n" \
+                            "                    [--pppd-ipparam=<string>] [--pppd-plugin=<file>]\n" \
+                            "                    [--ca-file=<file>] [--user-cert=<file>]\n" \
+                            "                    [--user-key=<file>] [--trusted-cert=<digest>]\n" \
+                            "                    [--use-syslog] [-c <file>] [-v|-q]\n" \
+                            "       openfortivpn --help\n" \
+                            "       openfortivpn --version\n" \
+                            "\n";
 
-static const char help_options[] = \
-"Client for PPP+SSL VPN tunnel services.\n" \
-"openfortivpn connects to a VPN by setting up a tunnel to the gateway at\n" \
-"<host>:<port>. It spawns a pppd process and operates the communication between\n" \
-"the gateway and this process.\n" \
-"\n" \
-"Options:\n" \
-"  -h --help                     Show this help message and exit.\n" \
-"  --version                     Show version and exit.\n" \
-"  -c <file>, --config=<file>    Specify a custom config file (default:\n" \
-"                                "SYSCONFDIR"/openfortivpn/config).\n" \
-"  -u <user>, --username=<user>  VPN account username.\n" \
-"  -p <pass>, --password=<pass>  VPN account password.\n" \
-"  -o <otp>, --otp=<otp>         One-Time-Password.\n" \
-"  --realm=<realm>               Use specified authentication realm on VPN gateway\n" \
-"                                when tunnel is up.\n" \
-"  --set-routes=[01]             Set if we should configure output roues through\n" \
-"                                the VPN when tunnel is up.\n" \
-"  --no-routes                   Do not configure routes, same as --set-routes=0.\n" \
-"  --custom-routes=<dest>/<mask>(@<gw>),...\n" \
-"                                Define custom routes to use for tunnel.\n" \
-"  --set-dns=[01]                Set if we should add VPN name servers in\n" \
-"                                /etc/resolv.conf\n" \
-"  --no-dns                      Do not reconfigure DNS, same as --set-dns=0\n" \
-"  --ca-file=<file>              Use specified PEM-encoded certificate bundle\n" \
-"                                instead of system-wide store to verify the gateway\n" \
-"                                certificate.\n" \
-"  --user-cert=<file>            Use specified PEM-encoded certificate if the server\n" \
-"                                requires authentication with a certificate.\n" \
-"  --user-key=<file>             Use specified PEM-encoded key if the server if the\n" \
-"                                server requires authentication with a certificate.\n" \
-"  --use-syslog                  Log to syslog instead of terminal.\n" \
-"  --trusted-cert=<digest>       Trust a given gateway. If classical SSL\n" \
-"                                certificate validation fails, the gateway\n" \
-"                                certificate will be matched against this value.\n" \
-"                                <digest> is the X509 certificate's sha256 sum.\n" \
-"                                This option can be used multiple times to trust\n" \
-"                                several certificates.\n" \
-"  --insecure-ssl                Do not disable insecure SSL protocols/ciphers.\n" \
-"                                If your server requires a specific cipher, consider\n" \
-"                                using --cipher-list instead.\n" \
-"  --cipher-list=<ciphers>       Openssl ciphers to use. If default does not work\n" \
-"                                you can try with the cipher suggested in the output\n" \
-"                                of 'openssl s_client -connect <host:port>'\n" \
-"                                (e.g. AES256-GCM-SHA384)\n" \
-"  --pppd-no-peerdns             Do not ask peer ppp server for DNS addresses\n" \
-"                                and do not make pppd rewrite /etc/resolv.conf\n" \
-"  --pppd-log=<file>             Set pppd in debug mode and save its logs into\n" \
-"                                <file>.\n" \
-"  --pppd-plugin=<file>          Use specified pppd plugin instead of configuring\n" \
-"                                resolver and routes directly.\n" \
-"  --pppd-ipparam=<string>       Provides  an extra parameter to the ip-up, ip-pre-up\n" \
-"                                and ip-down scripts. see man (8) pppd\n" \
-"  -v                            Increase verbosity. Can be used multiple times\n" \
-"                                to be even more verbose.\n" \
-"  -q                            Decrease verbosity. Can be used multiple times\n" \
-"                                to be even less verbose.\n" \
-"\n";
+static const char help_options[] = "Client for PPP+SSL VPN tunnel services.\n" \
+                                   "openfortivpn connects to a VPN by setting up a tunnel to the gateway at\n" \
+                                   "<host>:<port>. It spawns a pppd process and operates the communication between\n" \
+                                   "the gateway and this process.\n" \
+                                   "\n" \
+                                   "Options:\n" \
+                                   "  -h --help                     Show this help message and exit.\n" \
+                                   "  --version                     Show version and exit.\n" \
+                                   "  -c <file>, --config=<file>    Specify a custom config file (default:\n" \
+                                   "                                "SYSCONFDIR"/openfortivpn/config).\n" \
+                                   "  -u <user>, --username=<user>  VPN account username.\n" \
+                                   "  -p <pass>, --password=<pass>  VPN account password.\n" \
+                                   "  -o <otp>, --otp=<otp>         One-Time-Password.\n" \
+                                   "  --realm=<realm>               Use specified authentication realm on VPN gateway\n" \
+                                   "                                when tunnel is up.\n" \
+                                   "  --set-routes=[01]             Set if we should configure output roues through\n" \
+                                   "                                the VPN when tunnel is up.\n" \
+                                   "  --no-routes                   Do not configure routes, same as --set-routes=0.\n" \
+                                   "  --custom-routes=<dest>/<mask>(@<gw>),...\n" \
+                                   "                                Define custom routes to use for tunnel.\n" \
+                                   "  --set-dns=[01]                Set if we should add VPN name servers in\n" \
+                                   "                                /etc/resolv.conf\n" \
+                                   "  --no-dns                      Do not reconfigure DNS, same as --set-dns=0\n" \
+                                   "  --ca-file=<file>              Use specified PEM-encoded certificate bundle\n" \
+                                   "                                instead of system-wide store to verify the gateway\n" \
+                                   "                                certificate.\n" \
+                                   "  --user-cert=<file>            Use specified PEM-encoded certificate if the server\n" \
+                                   "                                requires authentication with a certificate.\n" \
+                                   "  --user-key=<file>             Use specified PEM-encoded key if the server if the\n" \
+                                   "                                server requires authentication with a certificate.\n" \
+                                   "  --use-syslog                  Log to syslog instead of terminal.\n" \
+                                   "  --trusted-cert=<digest>       Trust a given gateway. If classical SSL\n" \
+                                   "                                certificate validation fails, the gateway\n" \
+                                   "                                certificate will be matched against this value.\n" \
+                                   "                                <digest> is the X509 certificate's sha256 sum.\n" \
+                                   "                                This option can be used multiple times to trust\n" \
+                                   "                                several certificates.\n" \
+                                   "  --insecure-ssl                Do not disable insecure SSL protocols/ciphers.\n" \
+                                   "                                If your server requires a specific cipher, consider\n" \
+                                   "                                using --cipher-list instead.\n" \
+                                   "  --cipher-list=<ciphers>       Openssl ciphers to use. If default does not work\n" \
+                                   "                                you can try with the cipher suggested in the output\n" \
+                                   "                                of 'openssl s_client -connect <host:port>'\n" \
+                                   "                                (e.g. AES256-GCM-SHA384)\n" \
+                                   "  --pppd-no-peerdns             Do not ask peer ppp server for DNS addresses\n" \
+                                   "                                and do not make pppd rewrite /etc/resolv.conf\n" \
+                                   "  --pppd-log=<file>             Set pppd in debug mode and save its logs into\n" \
+                                   "                                <file>.\n" \
+                                   "  --pppd-plugin=<file>          Use specified pppd plugin instead of configuring\n" \
+                                   "                                resolver and routes directly.\n" \
+                                   "  --pppd-ipparam=<string>       Provides  an extra parameter to the ip-up, ip-pre-up\n" \
+                                   "                                and ip-down scripts. see man (8) pppd\n" \
+                                   "  -v                            Increase verbosity. Can be used multiple times\n" \
+                                   "                                to be even more verbose.\n" \
+                                   "  -q                            Decrease verbosity. Can be used multiple times\n" \
+                                   "                                to be even less verbose.\n" \
+                                   "\n";
 
 
-static const char help_config[] = \
-"Config file:\n" \
-"  Options can be taken from a configuration file. Options passed in the\n" \
-"  command line will override those from the config file, though. The default\n" \
-"  config file is "SYSCONFDIR"/openfortivpn/config,\n" \
-"  but this can be set using the -c option.\n" \
-"  A simple config file example looks like:\n" \
-"      # this is a comment\n" \
-"      host = vpn-gateway\n" \
-"      port = 8443\n" \
-"      username = foo\n" \
-"      password = bar\n" \
-"      trusted-cert = certificatedigest4daa8c5fe6c...\n" \
-"      trusted-cert = othercertificatedigest6631bf...\n" \
-"  For a full-featured config see man openfortivpn(1). \n";
+static const char help_config[] = "Config file:\n" \
+                                  "  Options can be taken from a configuration file. Options passed in the\n" \
+                                  "  command line will override those from the config file, though. The default\n" \
+                                  "  config file is "SYSCONFDIR"/openfortivpn/config,\n" \
+                                  "  but this can be set using the -c option.\n" \
+                                  "  A simple config file example looks like:\n" \
+                                  "      # this is a comment\n" \
+                                  "      host = vpn-gateway\n" \
+                                  "      port = 8443\n" \
+                                  "      username = foo\n" \
+                                  "      password = bar\n" \
+                                  "      trusted-cert = certificatedigest4daa8c5fe6c...\n" \
+                                  "      trusted-cert = othercertificatedigest6631bf...\n" \
+                                  "  For a full-featured config see man openfortivpn(1). \n";
 
 int main(int argc, char **argv)
 {
@@ -243,14 +240,14 @@ int main(int argc, char **argv)
 				int set_routes = strtob(optarg);
 				if (set_routes < 0) {
 					log_warn("Bad set-routes options: \"%s\"\n",
-						 optarg);
+					         optarg);
 					break;
 				}
 				cfg.set_routes = set_routes;
 				break;
 			}
 			if (strcmp(long_options[option_index].name,
-				   "custom-routes") == 0) {
+			           "custom-routes") == 0) {
 				cfg.custom_routes = strdup(optarg);
 				cfg.set_routes = 1;
 				break;
@@ -260,7 +257,7 @@ int main(int argc, char **argv)
 				int set_dns = strtob(optarg);
 				if (set_dns < 0) {
 					log_warn("Bad set-dns options: \"%s\"\n",
-						 optarg);
+					         optarg);
 					break;
 				}
 				cfg.set_dns = set_dns;
