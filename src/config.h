@@ -58,7 +58,7 @@ struct vpn_config {
 	struct in_addr	gateway_ip;
 	uint16_t	gateway_port;
 	char		username[FIELD_SIZE + 1];
-	char		password[FIELD_SIZE + 1];
+	char		*password;
 	char		otp[FIELD_SIZE + 1];
 	char		cookie[COOKIE_SIZE + 1];
 	char		realm[FIELD_SIZE + 1];

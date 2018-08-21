@@ -168,8 +168,7 @@ int load_config(struct vpn_config *cfg, const char *filename)
 			strncpy(cfg->username, val, FIELD_SIZE - 1);
 			cfg->username[FIELD_SIZE] = '\0';
 		} else if (strcmp(key, "password") == 0) {
-			strncpy(cfg->password, val, FIELD_SIZE - 1);
-			cfg->password[FIELD_SIZE] = '\0';
+			cfg->password = strdup(val);
 		} else if (strcmp(key, "otp") == 0) {
 			strncpy(cfg->otp, val, FIELD_SIZE - 1);
 			cfg->otp[FIELD_SIZE] = '\0';

@@ -140,6 +140,7 @@ static inline void destroy_vpn_config(struct vpn_config *cfg)
 	free(cfg->pppd_ipparam);
 	free(cfg->pppd_plugin);
 	free(cfg->pppd_log);
+	free(cfg->password);
 }
 
 int main(int argc, char **argv)
@@ -155,7 +156,7 @@ int main(int argc, char **argv)
 		// gateway_ip
 		.gateway_port = 0,
 		.username = {'\0'},
-		.password = {'\0'},
+		.password = NULL,
 		.otp = {'\0'},
 		.cookie = {'\0'},
 		.realm = {'\0'},
@@ -412,8 +413,7 @@ int main(int argc, char **argv)
 		cfg.username[FIELD_SIZE] = '\0';
 	}
 	if (password != NULL) {
-		strncpy(cfg.password, password, FIELD_SIZE);
-		cfg.password[FIELD_SIZE] = '\0';
+		cfg.password = strdup(password);
 	}
 	if (otp != NULL) {
 		strncpy(cfg.otp, otp, FIELD_SIZE);
@@ -431,9 +431,15 @@ int main(int argc, char **argv)
 		goto user_error;
 	}
 	// If no password given, interactively ask user
-	if (cfg.password[0] == '\0')
-		read_password("VPN account password: ", cfg.password,
-		              FIELD_SIZE);
+	if (cfg.password == NULL || cfg.password[0] == '\0') {
+		if (cfg.password != NULL) {
+			free(cfg.password);
+		}
+		char *tmp_password = malloc(BUFSIZ); // allocate large buffer
+		read_password("VPN account password: ", tmp_password, BUFSIZ);
+		cfg.password = strdup(tmp_password); // copy string of correct size
+		free(tmp_password);
+	}
 	// Check password
 	if (cfg.password[0] == '\0') {
 		log_error("Specify a password.\n");
