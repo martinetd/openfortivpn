@@ -50,7 +50,7 @@ struct x509_digest {
 	char data[SHA256STRLEN];
 };
 
-#define FIELD_SIZE	128
+#define FIELD_SIZE	64
 #define COOKIE_SIZE	4096
 
 struct vpn_config {
