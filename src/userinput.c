@@ -17,15 +17,19 @@
 
 #include "userinput.h"
 
+#include <errno.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <termios.h>
 #include <unistd.h>
 
-void read_password(const char *prompt, char *pass, size_t len)
+int read_password(const char *prompt, char **pass)
 {
 	int masked = 0;
 	struct termios oldt, newt;
-	int i;
+	char *line = NULL;
+	size_t linesz = 0;
+	int rc;
 
 	printf("%s", prompt);
 	fflush(stdout);
@@ -38,16 +42,21 @@ void read_password(const char *prompt, char *pass, size_t len)
 		masked = 1;
 	}
 
-	for (i = 0; i < len; i++) {
-		int c = getchar();
-		if (c == '\n' || c == EOF)
-			break;
-		pass[i] = (char) c;
-	}
-	pass[i] = '\0';
+	rc = getline(&line, &linesz, stdin);
 
 	if (masked)
 		tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
 
 	printf("\n");
+
+	if (rc < 0) {
+		rc = errno;
+		free(line);
+		return rc;
+	}
+	line[rc ? rc - 1 : rc] = '\0';
+	free(*pass);
+	*pass = line;
+
+	return 0;
 }

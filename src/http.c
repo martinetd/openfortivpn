@@ -446,8 +446,8 @@ int try_otp_auth(struct tunnel *tunnel, const char *buffer, char **res)
 			struct vpn_config *cfg = tunnel->config;
 			size_t l;
 			v = NULL;
-			if (cfg->otp[0] == '\0') {
-				read_password(p, cfg->otp, FIELD_SIZE);
+			if (!cfg->otp || cfg->otp[0] == '\0') {
+				read_password(p, &cfg->otp);
 				if (cfg->otp[0] == '\0') {
 					log_error("No OTP specified\n");
 					return 0;
@@ -540,9 +540,9 @@ int auth_log_in(struct tunnel *tunnel)
 		get_value_from_response(res, "reqid=", reqid, 32);
 		get_value_from_response(res, "polid=", polid, 32);
 
-		if (cfg->otp[0] == '\0') {
+		if (!cfg->otp || cfg->otp[0] == '\0') {
 			read_password("Two-factor authentication token: ",
-			              cfg->otp, FIELD_SIZE);
+			              &cfg->otp);
 			if (cfg->otp[0] == '\0') {
 				log_error("No token specified\n");
 				return 0;

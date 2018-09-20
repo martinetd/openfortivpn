@@ -157,7 +157,7 @@ int main(int argc, char **argv)
 		.gateway_port = 0,
 		.username = {'\0'},
 		.password = NULL,
-		.otp = {'\0'},
+		.otp = NULL,
 		.cookie = {'\0'},
 		.realm = {'\0'},
 		.set_routes = 1,
@@ -432,14 +432,13 @@ int main(int argc, char **argv)
 	}
 	// If no password given, interactively ask user
 	if (cfg.password == NULL || cfg.password[0] == '\0') {
-		if (cfg.password != NULL) {
-			free(cfg.password);
+		if (read_password("VPN account password: ", &cfg.password)) {
+			log_error("Specify a valid password\n");
+			goto user_error;
 		}
-		char *tmp_password = malloc(BUFSIZ); // allocate large buffer
-		read_password("VPN account password: ", tmp_password, BUFSIZ);
-		cfg.password = strdup(tmp_password); // copy string of correct size
-		free(tmp_password);
 	}
+	printf("%s\n", cfg.password);
+	return 0;
 	// Check password
 	if (cfg.password[0] == '\0') {
 		log_error("Specify a password.\n");
